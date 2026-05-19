@@ -1,0 +1,545 @@
+<!-- ============================================================
+     NSU Alvin Sherman Library — Database Search Builder
+     LIBGUIDES VERSION: paste into Rich Text/HTML source editor
+     - No base64 images (logo linked from NSU CDN or omit)
+     - No <html>/<head>/<body> wrappers
+     - No Google Fonts import (uses system fonts safe for LibGuides)
+     - All CSS scoped to .asl-sb prefix to avoid LibGuides conflicts
+     - Vanilla JS, no jQuery dependency conflicts
+     ============================================================ -->
+
+<style>
+.asl-sb *{box-sizing:border-box;margin:0;padding:0;}
+.asl-sb{
+  --nb:#001749;--nm:#003893;--nc:#0070cd;--nt:#E5F1FA;
+  --bg:#f4f6f9;--wh:#fff;--tx:#202121;--mu:#7c858c;
+  --bd:#d8dde3;--lg:#ebebeb;
+  --qb:#E5F1FA;--qo:#9ac5e8;--qt:#003893;
+  --yb:#FFF3E0;--yo:#FFCC80;--yt:#BF360C;
+  --ob:#E8F5E9;--oo:#A5D6A7;--ot:#1B5E20;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  color:var(--tx);background:var(--bg);
+  border-radius:10px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,23,73,.10);
+  border:1px solid var(--bd);
+  max-width:900px;margin:0 auto 1.5rem;
+}
+
+/* HERO */
+.asl-sb .sb-hero{
+  background:linear-gradient(108deg,var(--nb) 55%,var(--nm) 100%);
+  color:#fff;padding:1.6rem 1.75rem 1.4rem;
+  border-bottom:3px solid var(--nc);
+}
+.asl-sb .sb-hero h2{
+  font-size:1.25rem;font-weight:700;letter-spacing:-.01em;margin-bottom:.3rem;
+}
+.asl-sb .sb-hero p{font-size:.85rem;opacity:.82;line-height:1.55;}
+.asl-sb .sb-hero-rule{width:40px;height:3px;background:var(--nc);margin:.8rem 0 0;border-radius:2px;}
+
+/* STEP NAV */
+.asl-sb .sb-nav{
+  display:flex;background:var(--nt);border-bottom:1px solid var(--bd);
+  padding:0 1rem;overflow-x:auto;gap:0;
+}
+.asl-sb .sb-nav button{
+  display:flex;align-items:center;gap:6px;
+  padding:11px 13px;font-size:.76rem;font-weight:600;
+  color:var(--mu);background:none;border:none;
+  border-bottom:3px solid transparent;cursor:pointer;
+  white-space:nowrap;letter-spacing:.03em;
+  font-family:inherit;transition:color .18s,border-color .18s;
+}
+.asl-sb .sb-nav button.active{color:var(--nb);border-bottom-color:var(--nb);}
+.asl-sb .sb-nav button.done{color:var(--nc);}
+.asl-sb .sb-step-circle{
+  width:19px;height:19px;border-radius:50%;
+  background:var(--bd);display:inline-flex;align-items:center;
+  justify-content:center;font-size:.65rem;font-weight:700;
+  color:var(--mu);flex-shrink:0;transition:background .18s,color .18s;
+}
+.asl-sb .sb-nav button.active .sb-step-circle{background:var(--nb);color:#fff;}
+.asl-sb .sb-nav button.done .sb-step-circle{background:var(--nc);color:#fff;}
+.asl-sb .sb-nav button.done .sb-step-circle::after{content:'✓';}
+.asl-sb .sb-nav button.done .sb-snum{display:none;}
+
+/* BODY LAYOUT */
+.asl-sb .sb-body{display:grid;grid-template-columns:1fr 240px;gap:0;}
+@media(max-width:660px){.asl-sb .sb-body{grid-template-columns:1fr;}}
+
+/* PANELS */
+.asl-sb .sb-panel{display:none;padding:1.5rem 1.5rem 1.25rem;animation:sbFade .2s ease;}
+.asl-sb .sb-panel.active{display:block;}
+@keyframes sbFade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+
+.asl-sb .sb-ph{display:flex;align-items:center;gap:10px;margin-bottom:.9rem;}
+.asl-sb .sb-ph-icon{
+  width:40px;height:40px;border-radius:9px;display:flex;
+  align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;
+}
+.asl-sb .sb-ph-icon.what{background:var(--qb);}
+.asl-sb .sb-ph-icon.why{background:var(--yb);}
+.asl-sb .sb-ph-icon.who{background:var(--ob);}
+.asl-sb .sb-ph-icon.focus{background:#F3E8FF;}
+.asl-sb .sb-ph-icon.syn{background:#FEF9C3;}
+.asl-sb .sb-ph-icon.go{background:#E8F5E9;}
+.asl-sb .sb-ph h3{font-size:1.1rem;font-weight:700;color:var(--nb);}
+.asl-sb .sb-ph p{font-size:.8rem;color:var(--mu);margin-top:1px;}
+
+.asl-sb .sb-hint{
+  background:var(--nt);border-left:4px solid var(--nc);
+  padding:.7rem .9rem;border-radius:0 7px 7px 0;
+  font-size:.82rem;color:#1a2e4a;margin-bottom:1rem;line-height:1.6;
+}
+
+.asl-sb label{
+  display:block;font-size:.75rem;font-weight:700;
+  color:var(--nb);margin-bottom:5px;
+  text-transform:uppercase;letter-spacing:.07em;
+}
+.asl-sb input[type=text]{
+  width:100%;border:1.5px solid var(--bd);border-radius:7px;
+  padding:9px 12px;font-family:inherit;font-size:.92rem;
+  color:var(--tx);outline:none;background:#fff;
+  transition:border-color .2s,box-shadow .2s;
+}
+.asl-sb input[type=text]:focus{
+  border-color:var(--nm);box-shadow:0 0 0 3px rgba(0,56,147,.11);
+}
+.asl-sb input[type=text]::placeholder{color:#b5bec8;}
+
+/* SYNONYM GRID */
+.asl-sb .sb-syn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.85rem;}
+@media(max-width:480px){.asl-sb .sb-syn-grid{grid-template-columns:1fr;}}
+.asl-sb .sb-syn-section{margin-bottom:.5rem;}
+.asl-sb .sb-syn-label{
+  font-size:.73rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:.4rem;display:block;
+}
+
+/* TAGS */
+.asl-sb .sb-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 9px;border-radius:20px;font-size:.74rem;
+  font-weight:600;border:1px solid;margin:2px;
+}
+.asl-sb .sb-tag.what{background:var(--qb);border-color:var(--qo);color:var(--qt);}
+.asl-sb .sb-tag.why{background:var(--yb);border-color:var(--yo);color:var(--yt);}
+.asl-sb .sb-tag.who{background:var(--ob);border-color:var(--oo);color:var(--ot);}
+
+/* RQ BOX */
+.asl-sb .sb-rq{
+  background:var(--nt);border:1.5px solid var(--qo);
+  border-radius:9px;padding:1rem 1.1rem .9rem;margin:1rem 0 .9rem;
+}
+.asl-sb .sb-rq-label{
+  font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--nb);margin-bottom:.4rem;
+}
+.asl-sb .sb-rq-text{font-size:.93rem;color:var(--tx);line-height:1.65;min-height:36px;}
+
+/* BUTTONS */
+.asl-sb .sb-btn-row{display:flex;gap:9px;margin-top:1.25rem;flex-wrap:wrap;}
+.asl-sb .sb-btn{
+  padding:9px 20px;border-radius:7px;font-family:inherit;
+  font-size:.85rem;font-weight:600;cursor:pointer;
+  transition:all .15s;border:none;
+}
+.asl-sb .sb-btn-pri{background:var(--nb);color:#fff;}
+.asl-sb .sb-btn-pri:hover{background:var(--nm);}
+.asl-sb .sb-btn-sec{background:#fff;color:var(--nb);border:1.5px solid var(--bd);}
+.asl-sb .sb-btn-sec:hover{background:var(--bg);}
+.asl-sb .sb-btn-acc{background:var(--nc);color:#fff;}
+.asl-sb .sb-btn-acc:hover{background:var(--nm);}
+.asl-sb .sb-copy-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:.65rem;padding:5px 12px;background:#fff;
+  border:1.5px solid var(--bd);border-radius:6px;
+  font-size:.78rem;font-weight:600;color:var(--nb);
+  cursor:pointer;transition:all .15s;font-family:inherit;
+}
+.asl-sb .sb-copy-btn:hover{background:var(--nb);color:#fff;border-color:var(--nb);}
+.asl-sb .sb-copy-btn.copied{background:#2E7D32;color:#fff;border-color:#2E7D32;}
+
+/* SEARCH OUTPUT */
+.asl-sb .sb-db-block{
+  background:#fff;border:1.5px solid var(--bd);
+  border-radius:9px;padding:.9rem 1.1rem;margin:.65rem 0;
+}
+.asl-sb .sb-db-block h4{
+  font-size:.78rem;font-weight:700;color:var(--nb);
+  display:flex;align-items:center;gap:6px;
+  margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em;
+}
+.asl-sb .sb-db-icon{
+  width:24px;height:24px;background:var(--nb);border-radius:5px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.7rem;color:#fff;
+}
+.asl-sb .sb-search-line{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--nt);border:1px solid var(--qo);
+  border-radius:6px;padding:7px 10px;
+  font-size:.8rem;color:var(--tx);margin-bottom:5px;gap:9px;
+}
+.asl-sb .sb-search-line code{
+  flex:1;font-family:'Courier New',monospace;
+  word-break:break-all;font-size:.78rem;
+}
+.asl-sb .sb-mini-copy{
+  padding:3px 9px;background:#fff;border:1px solid var(--bd);
+  border-radius:5px;font-size:.72rem;font-weight:600;
+  color:var(--nb);cursor:pointer;white-space:nowrap;
+  font-family:inherit;transition:all .15s;
+}
+.asl-sb .sb-mini-copy:hover{background:var(--nb);color:#fff;}
+.asl-sb .sb-mini-copy.copied{background:#2E7D32;color:#fff;border-color:#2E7D32;}
+
+/* SIDEBAR */
+.asl-sb .sb-side{
+  background:#fff;border-left:1px solid var(--bd);
+  padding:1.25rem 1rem;display:flex;flex-direction:column;gap:1.1rem;
+}
+@media(max-width:660px){
+  .asl-sb .sb-side{border-left:none;border-top:1px solid var(--bd);}
+}
+.asl-sb .sb-side h4{
+  font-size:.85rem;font-weight:700;color:var(--nb);
+  margin-bottom:.7rem;display:flex;align-items:center;gap:7px;
+}
+.asl-sb .sb-sum-row{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:6px 0;border-bottom:1px solid var(--lg);
+}
+.asl-sb .sb-sum-row:last-child{border-bottom:none;}
+.asl-sb .sb-sum-lbl{
+  font-size:.67rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;min-width:40px;padding-top:2px;
+}
+.asl-sb .sb-sum-lbl.what{color:var(--qt);}
+.asl-sb .sb-sum-lbl.why{color:var(--yt);}
+.asl-sb .sb-sum-lbl.who{color:var(--ot);}
+.asl-sb .sb-sum-val{font-size:.84rem;color:var(--tx);line-height:1.5;flex:1;}
+.asl-sb .sb-empty{color:var(--mu);font-style:italic;font-size:.78rem;}
+
+.asl-sb .sb-db-link{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 0;border-bottom:1px solid var(--lg);
+  text-decoration:none;color:var(--tx);font-size:.82rem;
+  transition:color .15s;
+}
+.asl-sb .sb-db-link:last-child{border-bottom:none;}
+.asl-sb .sb-db-link:hover{color:var(--nm);}
+.asl-sb .sb-db-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--nc);flex-shrink:0;
+}
+.asl-sb .sb-db-sub{font-size:.71rem;color:var(--mu);display:block;}
+
+.asl-sb .sb-ask{
+  background:linear-gradient(135deg,var(--nb) 0%,var(--nm) 100%);
+  border-radius:8px;padding:1rem;
+}
+.asl-sb .sb-ask h4{color:#fff;font-size:.85rem;margin-bottom:.5rem;}
+.asl-sb .sb-ask p{font-size:.78rem;color:rgba(255,255,255,.78);margin-bottom:.75rem;line-height:1.55;}
+.asl-sb .sb-ask a{
+  display:block;background:#fff;color:var(--nb);
+  text-align:center;padding:7px;border-radius:6px;
+  font-weight:700;font-size:.82rem;text-decoration:none;
+  transition:opacity .15s;
+}
+.asl-sb .sb-ask a:hover{opacity:.85;}
+</style>
+
+<div class="asl-sb">
+
+  <!-- HERO -->
+  <div class="sb-hero">
+    <h2>📚 Database Search Builder</h2>
+    <p>Build a research question and generate ready-to-use search terms for any library database.</p>
+    <div class="sb-hero-rule"></div>
+  </div>
+
+  <!-- STEP NAV -->
+  <nav class="sb-nav" id="aslNav">
+    <button class="active" onclick="aslStep(1)" id="aslBtn1"><span class="sb-step-circle"><span class="sb-snum">1</span></span>What?</button>
+    <button onclick="aslStep(2)" id="aslBtn2"><span class="sb-step-circle"><span class="sb-snum">2</span></span>Why?</button>
+    <button onclick="aslStep(3)" id="aslBtn3"><span class="sb-step-circle"><span class="sb-snum">3</span></span>Who?</button>
+    <button onclick="aslStep(4)" id="aslBtn4"><span class="sb-step-circle"><span class="sb-snum">4</span></span>Focus</button>
+    <button onclick="aslStep(5)" id="aslBtn5"><span class="sb-step-circle"><span class="sb-snum">5</span></span>Synonyms</button>
+    <button onclick="aslStep(6)" id="aslBtn6"><span class="sb-step-circle"><span class="sb-snum">6</span></span>Search!</button>
+  </nav>
+
+  <div class="sb-body">
+    <!-- WIZARD PANELS -->
+    <div>
+
+      <!-- STEP 1 -->
+      <div class="sb-panel active" id="aslPanel1">
+        <div class="sb-ph">
+          <div class="sb-ph-icon what">🔍</div>
+          <div><h3>Step 1: What?</h3><p>The core topic of your research</p></div>
+        </div>
+        <div class="sb-hint">What is the main subject you want to explore? Use a word or short phrase.<br><strong>Example:</strong> <em>social media, climate change, mental health</em></div>
+        <label for="aslWhat">Your Topic (What)</label>
+        <input type="text" id="aslWhat" placeholder="e.g. social media use" oninput="aslUpdateSummary()" />
+        <div class="sb-btn-row">
+          <button class="sb-btn sb-btn-pri" onclick="aslNext(1)">Next →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="sb-panel" id="aslPanel2">
+        <div class="sb-ph">
+          <div class="sb-ph-icon why">💡</div>
+          <div><h3>Step 2: Why?</h3><p>The angle, outcome, or effect you're investigating</p></div>
+        </div>
+        <div class="sb-hint">Why does your topic matter for this paper? What outcome or relationship are you exploring?<br><strong>Example:</strong> <em>academic performance, mental health outcomes, policy change</em></div>
+        <label for="aslWhy">Your Focus (Why)</label>
+        <input type="text" id="aslWhy" placeholder="e.g. academic performance" oninput="aslUpdateSummary()" />
+        <div class="sb-btn-row">
+          <button class="sb-btn sb-btn-sec" onclick="aslPrev(2)">← Back</button>
+          <button class="sb-btn sb-btn-pri" onclick="aslNext(2)">Next →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="sb-panel" id="aslPanel3">
+        <div class="sb-ph">
+          <div class="sb-ph-icon who">👥</div>
+          <div><h3>Step 3: Who?</h3><p>The population or group your research focuses on</p></div>
+        </div>
+        <div class="sb-hint">Who is your research about? A demographic group, profession, or community.<br><strong>Example:</strong> <em>college students, healthcare workers, teenagers</em></div>
+        <label for="aslWho">Your Population (Who)</label>
+        <input type="text" id="aslWho" placeholder="e.g. college students" oninput="aslUpdateSummary()" />
+        <div class="sb-btn-row">
+          <button class="sb-btn sb-btn-sec" onclick="aslPrev(3)">← Back</button>
+          <button class="sb-btn sb-btn-pri" onclick="aslNext(3)">Next →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="sb-panel" id="aslPanel4">
+        <div class="sb-ph">
+          <div class="sb-ph-icon focus">🎯</div>
+          <div><h3>Step 4: Focused Topic</h3><p>See your elements come together</p></div>
+        </div>
+        <div class="sb-hint">Review your three elements and see how they form a research question. Go back to adjust anything.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.9rem;" id="aslTags4"></div>
+        <div class="sb-rq">
+          <div class="sb-rq-label">📋 Your Research Question</div>
+          <div class="sb-rq-text" id="aslRQ4"></div>
+          <button class="sb-copy-btn" onclick="aslCopyRQ('aslRQ4',this)">📋 Copy</button>
+        </div>
+        <div class="sb-hint" style="margin-top:.5rem;">
+          <strong>Format:</strong> "How has <em>[what]</em> affected <em>[why]</em> among <em>[who]</em>?"<br>
+          Or: "I am interested in how <em>[what]</em> impacts <em>[why]</em> in <em>[who]</em>."
+        </div>
+        <div class="sb-btn-row">
+          <button class="sb-btn sb-btn-sec" onclick="aslPrev(4)">← Back</button>
+          <button class="sb-btn sb-btn-pri" onclick="aslNext(4)">Next: Add Synonyms →</button>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="sb-panel" id="aslPanel5">
+        <div class="sb-ph">
+          <div class="sb-ph-icon syn">🔄</div>
+          <div><h3>Step 5: Synonyms</h3><p>Expand your search with alternative terms</p></div>
+        </div>
+        <div class="sb-hint">Different authors use different words! Enter up to 2 alternatives per concept — leave blank if none apply.</div>
+
+        <div class="sb-syn-section">
+          <span class="sb-syn-label" style="color:var(--qt)">📘 What synonyms</span>
+          <div class="sb-syn-grid">
+            <div><label>Synonym 1</label><input type="text" id="aslWhatS1" placeholder="alternative term" oninput="aslUpdateSummary()" /></div>
+            <div><label>Synonym 2</label><input type="text" id="aslWhatS2" placeholder="alternative term" oninput="aslUpdateSummary()" /></div>
+          </div>
+        </div>
+        <div class="sb-syn-section">
+          <span class="sb-syn-label" style="color:var(--yt)">🟠 Why synonyms</span>
+          <div class="sb-syn-grid">
+            <div><label>Synonym 1</label><input type="text" id="aslWhyS1" placeholder="alternative term" oninput="aslUpdateSummary()" /></div>
+            <div><label>Synonym 2</label><input type="text" id="aslWhyS2" placeholder="alternative term" oninput="aslUpdateSummary()" /></div>
+          </div>
+        </div>
+        <div class="sb-syn-section">
+          <span class="sb-syn-label" style="color:var(--ot)">🟢 Who synonyms</span>
+          <div class="sb-syn-grid">
+            <div><label>Synonym 1</label><input type="text" id="aslWhoS1" placeholder="alternative term" oninput="aslUpdateSummary()" /></div>
+            <div><label>Synonym 2</label><input type="text" id="aslWhoS2" placeholder="alternative term" oninput="aslUpdateSummary()" /></div>
+          </div>
+        </div>
+
+        <div class="sb-btn-row">
+          <button class="sb-btn sb-btn-sec" onclick="aslPrev(5)">← Back</button>
+          <button class="sb-btn sb-btn-acc" onclick="aslNext(5)">🔎 Generate Search Terms →</button>
+        </div>
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="sb-panel" id="aslPanel6">
+        <div class="sb-ph">
+          <div class="sb-ph-icon go">✅</div>
+          <div><h3>Step 6: Your Search Terms</h3><p>Ready-to-paste queries for library databases</p></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.9rem;" id="aslTags6"></div>
+        <div class="sb-rq" style="margin-top:0;">
+          <div class="sb-rq-label">📋 Research Question</div>
+          <div class="sb-rq-text" id="aslRQ6"></div>
+          <button class="sb-copy-btn" onclick="aslCopyRQ('aslRQ6',this)">📋 Copy</button>
+        </div>
+
+        <div style="margin-top:1rem;">
+          <p style="font-size:.84rem;font-weight:700;color:var(--nb);margin-bottom:.6rem;">📚 Getting Started with NSU Databases</p>
+          <p style="font-size:.8rem;color:var(--mu);margin-bottom:.8rem;">Access via <a href="https://library.nova.edu" target="_blank" style="color:var(--nm);">library.nova.edu</a> with your SharkLink credentials.</p>
+
+          <div class="sb-db-block">
+            <h4><span class="sb-db-icon">☰</span> Multiple Search Boxes <span style="font-weight:400;font-size:.72rem;color:var(--mu);">(EBSCOhost, Academic Search)</span></h4>
+            <p style="font-size:.78rem;color:var(--mu);margin-bottom:.6rem;">Enter each row in a separate search box — use <strong>AND</strong> between boxes.</p>
+            <div id="aslMulti"></div>
+          </div>
+
+          <div class="sb-db-block">
+            <h4><span class="sb-db-icon">🔍</span> Single Search Box <span style="font-weight:400;font-size:.72rem;color:var(--mu);">(Google Scholar, PubMed)</span></h4>
+            <p style="font-size:.78rem;color:var(--mu);margin-bottom:.6rem;">Paste this entire string into one search box.</p>
+            <div id="aslSingle"></div>
+          </div>
+        </div>
+
+        <div class="sb-btn-row">
+          <button class="sb-btn sb-btn-sec" onclick="aslPrev(6)">← Back</button>
+          <button class="sb-btn sb-btn-sec" onclick="aslReset()">🔄 Start Over</button>
+        </div>
+      </div>
+
+    </div><!-- end panels -->
+
+    <!-- SIDEBAR -->
+    <div class="sb-side">
+
+      <div>
+        <h4>🗂 Your Terms</h4>
+        <div class="sb-sum-row"><span class="sb-sum-lbl what">What</span><span class="sb-sum-val" id="aslSumWhat"><span class="sb-empty">not yet entered</span></span></div>
+        <div class="sb-sum-row"><span class="sb-sum-lbl why">Why</span><span class="sb-sum-val" id="aslSumWhy"><span class="sb-empty">not yet entered</span></span></div>
+        <div class="sb-sum-row"><span class="sb-sum-lbl who">Who</span><span class="sb-sum-val" id="aslSumWho"><span class="sb-empty">not yet entered</span></span></div>
+      </div>
+
+      <div>
+        <h4>📖 NSU Databases</h4>
+        <a class="sb-db-link" href="https://library.nova.edu/az.php" target="_blank">
+          <span class="sb-db-dot"></span><span>A–Z Databases<span class="sb-db-sub">All NSU subscriptions</span></span>
+        </a>
+        <a class="sb-db-link" href="https://library.nova.edu" target="_blank">
+          <span class="sb-db-dot"></span><span>EBSCOhost<span class="sb-db-sub">Multidisciplinary articles</span></span>
+        </a>
+        <a class="sb-db-link" href="https://scholar.google.com" target="_blank">
+          <span class="sb-db-dot"></span><span>Google Scholar<span class="sb-db-sub">Academic search</span></span>
+        </a>
+        <a class="sb-db-link" href="https://pubmed.ncbi.nlm.nih.gov" target="_blank">
+          <span class="sb-db-dot"></span><span>PubMed<span class="sb-db-sub">Health &amp; biomedical</span></span>
+        </a>
+      </div>
+
+      <div class="sb-ask">
+        <h4>💬 Ask a Librarian</h4>
+        <p>Need help refining your search? We're here!</p>
+        <a href="https://library.nova.edu/ask" target="_blank">Chat with Us →</a>
+      </div>
+
+    </div>
+  </div><!-- end sb-body -->
+</div><!-- end asl-sb -->
+
+<script>
+(function(){
+  var cur = 1, tot = 6;
+
+  window.aslStep = function(n) {
+    for(var i=1;i<=tot;i++){
+      document.getElementById('aslPanel'+i).classList.remove('active');
+      var b=document.getElementById('aslBtn'+i);
+      b.classList.remove('active','done');
+      if(i<n) b.classList.add('done');
+    }
+    document.getElementById('aslPanel'+n).classList.add('active');
+    document.getElementById('aslBtn'+n).classList.add('active');
+    cur=n;
+    if(n===4||n===6) aslRenderFocus();
+    if(n===6) aslRenderSearch();
+  };
+  window.aslNext = function(n){ if(n<tot) aslStep(n+1); };
+  window.aslPrev = function(n){ if(n>1)  aslStep(n-1); };
+
+  function gv(id){ return (document.getElementById(id)||{}).value||''; }
+  function sh(id,html){ var e=document.getElementById(id); if(e) e.innerHTML=html; }
+
+  window.aslUpdateSummary = function(){
+    var w=gv('aslWhat').trim(), y=gv('aslWhy').trim(), o=gv('aslWho').trim();
+    sh('aslSumWhat', w||'<span class="sb-empty">not yet entered</span>');
+    sh('aslSumWhy',  y||'<span class="sb-empty">not yet entered</span>');
+    sh('aslSumWho',  o||'<span class="sb-empty">not yet entered</span>');
+  };
+
+  function aslRenderFocus(){
+    var w=gv('aslWhat').trim(), y=gv('aslWhy').trim(), o=gv('aslWho').trim();
+    ['aslTags4','aslTags6'].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      el.innerHTML='';
+      if(w) el.innerHTML+='<span class="sb-tag what">📘 What: '+w+'</span>';
+      if(y) el.innerHTML+='<span class="sb-tag why">🟠 Why: '+y+'</span>';
+      if(o) el.innerHTML+='<span class="sb-tag who">🟢 Who: '+o+'</span>';
+    });
+    var rq='How has '+(w||'[topic]')+' affected '+(y||'[effect]')+' among '+(o||'[population]')+'?';
+    sh('aslRQ4',rq); sh('aslRQ6',rq);
+  }
+
+  function buildGroup(main,s1,s2){
+    var t=[main,s1,s2].map(function(x){return x.trim();}).filter(Boolean);
+    if(!t.length) return null;
+    return t.map(function(x){return '"'+x+'"';}).join(' OR ');
+  }
+
+  function aslRenderSearch(){
+    aslRenderFocus();
+    var wg=buildGroup(gv('aslWhat'),gv('aslWhatS1'),gv('aslWhatS2'));
+    var yg=buildGroup(gv('aslWhy'), gv('aslWhyS1'), gv('aslWhyS2'));
+    var og=buildGroup(gv('aslWho'), gv('aslWhoS1'), gv('aslWhoS2'));
+    var groups=[wg,yg,og].filter(Boolean);
+    var labels=['📘 Box 1 (What)','🟠 Box 2 (Why)','🟢 Box 3 (Who)'];
+    var mb=document.getElementById('aslMulti');
+    mb.innerHTML=groups.map(function(g,i){
+      var esc=g.replace(/"/g,'&quot;');
+      return '<div class="sb-search-line"><code>'+labels[i]+': '+g+'</code>'
+        +'<button class="sb-mini-copy" onclick="aslMiniCopy(this,\''+g.replace(/'/g,"\\'")+'\')" >Copy</button></div>';
+    }).join('');
+    var sb=document.getElementById('aslSingle');
+    if(groups.length){
+      var full=groups.map(function(g){return '('+g+')';}).join(' AND ');
+      sb.innerHTML='<div class="sb-search-line"><code>'+full+'</code>'
+        +'<button class="sb-mini-copy" onclick="aslMiniCopy(this,\''+full.replace(/'/g,"\\'")+'\')" >Copy</button></div>';
+    } else {
+      sb.innerHTML='<p style="color:var(--mu);font-size:.8rem;">Complete Steps 1–3 to generate your search string.</p>';
+    }
+  }
+
+  window.aslCopyRQ = function(id,btn){
+    var el=document.getElementById(id); if(!el) return;
+    navigator.clipboard.writeText(el.textContent).then(function(){
+      btn.textContent='✅ Copied!'; btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2000);
+    });
+  };
+  window.aslMiniCopy = function(btn,text){
+    navigator.clipboard.writeText(text).then(function(){
+      btn.textContent='✅'; btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent='Copy'; btn.classList.remove('copied'); },2000);
+    });
+  };
+  window.aslReset = function(){
+    ['aslWhat','aslWhy','aslWho','aslWhatS1','aslWhatS2','aslWhyS1','aslWhyS2','aslWhoS1','aslWhoS2']
+      .forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+    aslUpdateSummary(); aslStep(1);
+  };
+})();
+</script>
